@@ -19,7 +19,7 @@ A full-stack note-taking application built with the MERN stack (MongoDB, Express
 ## Live Demo
 
 Access the live application here:  
-**[Live URL](https://your-live-url-here.com)**
+**[Live URL](https://plp-capstone-note-taking-app-project.onrender.com)**
 
 ---
 
