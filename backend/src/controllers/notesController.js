@@ -1,3 +1,4 @@
+import mongoose from "mongoose"; // <-- ADDED: Required for ObjectId validation
 import Note from "../models/Note.js";
 
 // @desc    Get all notes for a logged-in user
@@ -5,13 +6,12 @@ import Note from "../models/Note.js";
 // @access  Private
 export const getAllNotesForUser = async (req, res) => {
   try {
-    // Find only the notes that belong to the logged-in user (req.user._id)
     const notes = await Note.find({ user: req.user._id }).sort({
       updatedAt: -1,
     });
     res.status(200).json(notes);
   } catch (error) {
-    console.error("Error in getAllNotesForUser controller", error);
+    console.error("Error in getAllNotesForUser controller:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -37,7 +37,7 @@ export const createNote = async (req, res) => {
     const createdNote = await note.save();
     res.status(201).json(createdNote);
   } catch (error) {
-    console.error("Error in createNote controller", error);
+    console.error("Error in createNote controller:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -46,11 +46,19 @@ export const createNote = async (req, res) => {
 // @route   GET /api/notes/:id
 // @access  Private
 export const getNoteById = async (req, res) => {
+  
+  // Validate if the provided ID is a valid MongoDB ObjectId
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ message: "Note not found" });
+  }
+  
+
   try {
     const note = await Note.findById(req.params.id);
 
     if (!note) {
-      return res.status(404).json({ message: "Note not found!" });
+      // This now correctly handles cases where the ID format is valid but not found
+      return res.status(404).json({ message: "Note not found" });
     }
 
     // IMPORTANT: Check if the note belongs to the logged-in user
@@ -62,7 +70,7 @@ export const getNoteById = async (req, res) => {
 
     res.json(note);
   } catch (error) {
-    console.error("Error in getNoteById controller", error);
+    console.error("Error in getNoteById controller:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -72,6 +80,13 @@ export const getNoteById = async (req, res) => {
 // @access  Private
 export const updateNote = async (req, res) => {
   const { title, content } = req.body;
+
+  // --- MODIFICATION START ---
+  // Validate if the provided ID is a valid MongoDB ObjectId
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ message: "Note not found" });
+  }
+  // --- MODIFICATION END ---
 
   try {
     const note = await Note.findById(req.params.id);
@@ -93,7 +108,7 @@ export const updateNote = async (req, res) => {
     const updatedNote = await note.save();
     res.status(200).json(updatedNote);
   } catch (error) {
-    console.error("Error in updateNote controller", error);
+    console.error("Error in updateNote controller:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -102,6 +117,13 @@ export const updateNote = async (req, res) => {
 // @route   DELETE /api/notes/:id
 // @access  Private
 export const deleteNote = async (req, res) => {
+  // --- MODIFICATION START ---
+  // Validate if the provided ID is a valid MongoDB ObjectId
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ message: "Note not found" });
+  }
+  // --- MODIFICATION END ---
+
   try {
     const note = await Note.findById(req.params.id);
 
@@ -117,9 +139,9 @@ export const deleteNote = async (req, res) => {
     }
 
     await note.deleteOne(); // Use deleteOne() on the document instance
-    res.status(200).json({ message: "Note removed successfully!" });
+    res.status(200).json({ message: "Note removed successfully" });
   } catch (error) {
-    console.error("Error in deleteNote controller", error);
+    console.error("Error in deleteNote controller:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
