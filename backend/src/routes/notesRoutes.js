@@ -1,24 +1,36 @@
 import express from "express";
 import {
+  getAllNotesForUser,
   createNote,
-  deleteNote,
-  getAllNotesForUser, // Renamed from getAllNotes
   getNoteById,
   updateNote,
+  deleteNote,
+  searchNotes, // New
+  getAllUserTags, // New
+  getTrashedNotes, // New
+  trashNote, // New
+  restoreNote, // New
 } from "../controllers/notesController.js";
-import { protect } from "../middleware/authMiddleware.js"; // Import the middleware
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // Apply the 'protect' middleware to all routes defined in this file.
-// Any request to /api/notes/* will now require a valid JWT.
 router.use(protect);
 
-router
-  .route("/")
-  .get(getAllNotesForUser) // Use the new controller function
-  .post(createNote);
+// --- Main Note Listing & Creation ---
+router.route("/").get(getAllNotesForUser).post(createNote);
 
-router.route("/:id").get(getNoteById).put(updateNote).delete(deleteNote);
+// --- New Feature-Specific GET Routes ---
+router.get("/search", searchNotes);
+router.get("/tags", getAllUserTags);
+router.get("/trash", getTrashedNotes);
+
+// --- Routes for a Single Note by ID ---
+router.route("/:id").get(getNoteById).put(updateNote).delete(deleteNote); // Note: This is now for PERMANENT deletion
+
+// --- New Routes for Specific Actions on a Single Note ---
+router.put("/:id/trash", trashNote);
+router.put("/:id/restore", restoreNote);
 
 export default router;
