@@ -35,6 +35,19 @@ const noteSchema = new mongoose.Schema(
     isTrashed: {
       type: Boolean,
       default: false,
+        },
+    
+        // --- NEW PREMIUM FIELDS ---
+    attachments: [
+      {
+        public_id: { type: String, required: true }, // ID from Cloudinary
+        url: { type: String, required: true },       // URL from Cloudinary
+        filename: { type: String, required: true }, // Original filename
+      },
+    ],
+    shareableLink: {
+      token: { type: String, index: true, sparse: true }, // Indexed for fast lookups
+      expires: { type: Date },
     },
   },
   {
