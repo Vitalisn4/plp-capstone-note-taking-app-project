@@ -6,6 +6,7 @@ import path from "path";
 // Route Imports
 import notesRoutes from "./routes/notesRoutes.js";
 import userRoutes from "./routes/userRoutes.js"; // <- MODIFICATION: Import user routes
+import publicRoutes from "./routes/publicRoutes.js"; // <- MODIFICATION: Import public routes
 
 // Config and Middleware Imports
 import { connectDB } from "./config/db.js";
@@ -31,6 +32,7 @@ app.use(rateLimiter); // Apply rate limiting to all requests
 // API Routes
 app.use("/api/notes", notesRoutes);
 app.use("/api/users", userRoutes); // <- MODIFICATION: Mount user routes
+app.use("/api/public", publicRoutes); // <- MODIFICATION: Mount public routes
 
 // Production Build Configuration
 if (process.env.NODE_ENV === "production") {

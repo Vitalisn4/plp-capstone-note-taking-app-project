@@ -1,3 +1,9 @@
+import { requirePremium } from "../middleware/premiumMiddleware.js";
+import multerUpload from "../config/multer.js";
+import {
+  addAttachment,
+  generateShareableLink,
+} from "../controllers/notesController.js";
 import express from "express";
 import {
   getAllNotesForUser,
@@ -32,5 +38,15 @@ router.route("/:id").get(getNoteById).put(updateNote).delete(deleteNote); // Not
 // --- New Routes for Specific Actions on a Single Note ---
 router.put("/:id/trash", trashNote);
 router.put("/:id/restore", restoreNote);
+
+// --- PREMIUM FEATURE ROUTES ---
+router.post(
+  '/:id/attachments',
+  requirePremium,
+  multerUpload.single('attachment'), // Use 'attachment' as the field name
+  addAttachment
+);
+
+router.post('/:id/share', requirePremium, generateShareableLink);
 
 export default router;

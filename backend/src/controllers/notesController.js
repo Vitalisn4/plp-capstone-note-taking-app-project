@@ -1,3 +1,5 @@
+import cloudinary from "../config/cloudinary.js";
+import crypto from "crypto";
 import mongoose from "mongoose";
 import Note from "../models/Note.js";
 
@@ -241,5 +243,71 @@ export const restoreNote = async (req, res) => {
   } catch (error) {
     console.error("Error in restoreNote controller:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// --- ADD THESE NEW FUNCTIONS TO THE END OF THE FILE ---
+
+// @desc    Add an attachment to a note
+// @route   POST /api/notes/:id/attachments
+// @access  Private/Premium
+export const addAttachment = async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note || note.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Action not authorized' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Upload to Cloudinary
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    let dataURI = 'data:' + req.file.mimetype + ';base64,' + b64;
+    const result = await cloudinary.uploader.upload(dataURI, {
+      resource_type: 'auto',
+      folder: `nexusnotes/${req.user._id}`, // Store in a user-specific folder
+    });
+
+    const attachment = {
+      public_id: result.public_id,
+      url: result.secure_url,
+      filename: req.file.originalname,
+    };
+    note.attachments.push(attachment);
+    await note.save();
+    res.status(201).json(note.attachments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error uploading file' });
+  }
+};
+
+// @desc    Generate or retrieve a shareable link for a note
+// @route   POST /api/notes/:id/share
+// @access  Private/Premium
+export const generateShareableLink = async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id);
+    if (!note || note.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Action not authorized' });
+    }
+
+    // If a valid link already exists, return it
+    if (note.shareableLink && note.shareableLink.token) {
+        // Optional: you could check for expiration here too
+        const link = `${req.protocol}://${req.get('host')}/api/public/notes/${note.shareableLink.token}`;
+        return res.json({ shareableLink: link });
+    }
+
+    // Otherwise, create a new link
+    const token = crypto.randomBytes(24).toString('hex');
+    note.shareableLink = { token, expires: null }; // Set expiration as needed
+    await note.save();
+    
+    const link = `${req.protocol}://${req.get('host')}/api/public/notes/${token}`;
+    res.status(201).json({ shareableLink: link });
+  } catch (error) {
+      res.status(500).json({ message: 'Error generating shareable link' });
   }
 };
