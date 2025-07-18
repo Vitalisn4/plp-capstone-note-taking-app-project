@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router";
 import useAuthStore from "../store/authStore";
 import { BrainCircuit, NotebookText, Trash2, LogOut } from "lucide-react";
 
