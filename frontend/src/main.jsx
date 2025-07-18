@@ -1,18 +1,14 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router"; // CORRECTED: Import from 'react-router-dom' for web projects
-import { Toaster } from "react-hot-toast";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router"; // Import BrowserRouter here
 import App from "./App.jsx";
 import "./index.css";
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    {/* The single BrowserRouter now wraps the entire App */}
     <BrowserRouter>
-      {/* App component contains all the page routes */}
       <App />
-
-      {/* Toaster is placed here to be available globally */}
-      <Toaster position="top-center" reverseOrder={false} />
     </BrowserRouter>
-  </StrictMode>
+  </React.StrictMode>
 );
