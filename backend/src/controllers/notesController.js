@@ -23,7 +23,7 @@ export const getAllNotesForUser = async (req, res) => {
 // @route   POST /api/notes
 // @access  Private
 export const createNote = async (req, res) => {
-  const { title, content, tags } = req.body;
+  const { title, content, tags, isPinned } = req.body;
   if (!title || !content) {
     return res
       .status(400)
@@ -35,6 +35,7 @@ export const createNote = async (req, res) => {
       title,
       content,
       tags: tags || [], // Handle the new 'tags' field
+      isPinned: isPinned || false, // Handle optional pinning on creation
       user: req.user._id,
     });
 
@@ -97,8 +98,8 @@ export const updateNote = async (req, res) => {
         .json({ message: "Not authorized to update this note" });
     }
 
-    note.title = title || note.title;
-    note.content = content || note.content;
+    note.title = title ?? note.title;
+    note.content = content ?? note.content;
     if (tags !== undefined) note.tags = tags;
     if (isPinned !== undefined) note.isPinned = isPinned;
 
@@ -131,7 +132,6 @@ export const deleteNote = async (req, res) => {
         .json({ message: "Not authorized to delete this note" });
     }
 
-    // IMPORTANT: Only allow deletion if the note is already in the trash
     if (!note.isTrashed) {
       return res
         .status(400)
@@ -145,10 +145,6 @@ export const deleteNote = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-// ===============================================
-// NEW CONTROLLER FUNCTIONS FOR PHASE 2 FEATURES
-// ===============================================
 
 // @desc    Search notes by keyword
 // @route   GET /api/notes/search
@@ -195,7 +191,7 @@ export const getTrashedNotes = async (req, res) => {
     const trashedNotes = await Note.find({
       user: req.user._id,
       isTrashed: true,
-    }).sort({ updatedAt: -1 });
+    }).sort({ trashedAt: -1 }); // Sort by when it was trashed
     res.json(trashedNotes);
   } catch (error) {
     console.error("Error in getTrashedNotes controller:", error);
@@ -216,7 +212,8 @@ export const trashNote = async (req, res) => {
       return res.status(403).json({ message: "Action not authorized" });
     }
     note.isTrashed = true;
-    note.isPinned = false; // A trashed note cannot be pinned
+    note.isPinned = false;
+    note.trashedAt = new Date(); // SET the timestamp for TTL index
     await note.save();
     res.json({ message: "Note moved to trash" });
   } catch (error) {
@@ -238,6 +235,7 @@ export const restoreNote = async (req, res) => {
       return res.status(403).json({ message: "Action not authorized" });
     }
     note.isTrashed = false;
+    note.trashedAt = undefined; // REMOVE the timestamp to prevent auto-deletion
     await note.save();
     res.json({ message: "Note restored" });
   } catch (error) {
@@ -246,7 +244,21 @@ export const restoreNote = async (req, res) => {
   }
 };
 
-// --- ADD THESE NEW FUNCTIONS TO THE END OF THE FILE ---
+// --- NEW FUNCTION ---
+// @desc    Empty the trash by permanently deleting all trashed notes
+// @route   DELETE /api/notes/trash/empty
+// @access  Private
+export const emptyTrash = async (req, res) => {
+  try {
+    await Note.deleteMany({ user: req.user._id, isTrashed: true });
+    res.json({ message: "Trash has been emptied successfully" });
+  } catch (error) {
+    console.error("Error in emptyTrash controller:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// --- PREMIUM FEATURE CONTROLLERS ---
 
 // @desc    Add an attachment to a note
 // @route   POST /api/notes/:id/attachments
@@ -255,18 +267,17 @@ export const addAttachment = async (req, res) => {
   try {
     const note = await Note.findById(req.params.id);
     if (!note || note.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Action not authorized' });
+      return res.status(403).json({ message: "Action not authorized" });
     }
     if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+      return res.status(400).json({ message: "No file uploaded" });
     }
 
-    // Upload to Cloudinary
-    const b64 = Buffer.from(req.file.buffer).toString('base64');
-    let dataURI = 'data:' + req.file.mimetype + ';base64,' + b64;
+    const b64 = Buffer.from(req.file.buffer).toString("base64");
+    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
     const result = await cloudinary.uploader.upload(dataURI, {
-      resource_type: 'auto',
-      folder: `nexusnotes/${req.user._id}`, // Store in a user-specific folder
+      resource_type: "auto",
+      folder: `nexusnotes/${req.user._id}`,
     });
 
     const attachment = {
@@ -279,7 +290,7 @@ export const addAttachment = async (req, res) => {
     res.status(201).json(note.attachments);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error uploading file' });
+    res.status(500).json({ message: "Error uploading file" });
   }
 };
 
@@ -290,24 +301,25 @@ export const generateShareableLink = async (req, res) => {
   try {
     const note = await Note.findById(req.params.id);
     if (!note || note.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Action not authorized' });
+      return res.status(403).json({ message: "Action not authorized" });
     }
 
-    // If a valid link already exists, return it
     if (note.shareableLink && note.shareableLink.token) {
-        // Optional: you could check for expiration here too
-        const link = `${req.protocol}://${req.get('host')}/api/public/notes/${note.shareableLink.token}`;
-        return res.json({ shareableLink: link });
+      const link = `${req.protocol}://${req.get("host")}/api/public/notes/${
+        note.shareableLink.token
+      }`;
+      return res.json({ shareableLink: link });
     }
 
-    // Otherwise, create a new link
-    const token = crypto.randomBytes(24).toString('hex');
-    note.shareableLink = { token, expires: null }; // Set expiration as needed
+    const token = crypto.randomBytes(24).toString("hex");
+    note.shareableLink = { token, expires: null };
     await note.save();
-    
-    const link = `${req.protocol}://${req.get('host')}/api/public/notes/${token}`;
+
+    const link = `${req.protocol}://${req.get(
+      "host"
+    )}/api/public/notes/${token}`;
     res.status(201).json({ shareableLink: link });
   } catch (error) {
-      res.status(500).json({ message: 'Error generating shareable link' });
+    res.status(500).json({ message: "Error generating shareable link" });
   }
 };
