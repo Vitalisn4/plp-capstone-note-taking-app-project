@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router"; // CORRECTED: from 'react-router' to 'react-router-dom'
+import { Link } from "react-router";
 import { Plus, Search, Loader2 } from "lucide-react";
 import api from "../lib/axios";
 import toast from "react-hot-toast";
-import { useDebounce } from "../hooks/useDebounce";
+import { useDebounce } from "../hooks/useDebounce"; // This import will now work
 import NoteCard from "../components/NoteCard";
 import NotesNotFound from "../components/NotesNotFound";
 
@@ -31,19 +31,15 @@ const HomePage = () => {
     fetchNotes(debouncedSearchTerm);
   }, [debouncedSearchTerm, fetchNotes]);
 
-  // --- Handler for moving a note to trash ---
   const handleTrashNote = async (id) => {
     const originalNotes = [...notes];
     setNotes(originalNotes.filter((n) => n._id !== id));
-
     try {
-      // --- THE FIX IS HERE ---
-      // The endpoint is for MOVING to trash, which is a PUT request.
       await api.put(`/notes/${id}/trash`);
       toast.success("Note moved to trash.");
     } catch (error) {
       console.error("Error moving note to trash:", error);
-      toast.error("Failed to move note to trash."); // More specific error message
+      toast.error("Failed to move note to trash.");
       setNotes(originalNotes);
     }
   };
