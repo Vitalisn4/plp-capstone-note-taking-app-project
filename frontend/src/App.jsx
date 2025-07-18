@@ -25,7 +25,10 @@ const App = () => {
 
       <Toaster position="top-center" reverseOrder={false} />
 
-      {/* The <Routes> component works here because its parent (<main.jsx>) provides the BrowserRouter context. */}
+      {/* 
+        The <Routes> component now works correctly because its parent 
+        (in main.jsx) provides the necessary BrowserRouter context.
+      */}
       <Routes>
         {/* --- Public Routes --- */}
         <Route
