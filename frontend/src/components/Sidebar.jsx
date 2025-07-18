@@ -1,4 +1,5 @@
-import { NavLink, useNavigate } from "react-router";
+// The fix is on this line: We are adding 'Link' to the import from 'react-router-dom'.
+import { Link, NavLink, useNavigate } from "react-router";
 import useAuthStore from "../store/authStore";
 import { BrainCircuit, NotebookText, Trash2, LogOut } from "lucide-react";
 
@@ -19,7 +20,8 @@ const Sidebar = () => {
     }`;
 
   return (
-    <aside className="w-64 flex flex-col bg-gray-800 text-white p-4">
+    <aside className="w-64 flex-shrink-0 flex-col bg-gray-800 text-white p-4 hidden md:flex">
+      {/* This <Link> component is what was causing the error. It now works because we imported it. */}
       <Link to="/app" className="flex items-center space-x-2 mb-10 px-2">
         <BrainCircuit className="h-8 w-8 text-blue-400" />
         <span className="text-2xl font-bold">NexusNotes</span>
