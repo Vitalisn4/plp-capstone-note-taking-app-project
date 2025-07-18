@@ -1,18 +1,15 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import path from "path";
 
-// Route Imports
-import notesRoutes from "./routes/notesRoutes.js";
-import userRoutes from "./routes/userRoutes.js"; // <- MODIFICATION: Import user routes
-import publicRoutes from "./routes/publicRoutes.js"; // <- MODIFICATION: Import public routes
+// NOTE: We have removed the 'dotenv' import and config call from this file.
+// It is now handled by the "dev" script in package.json.
 
-// Config and Middleware Imports
+import notesRoutes from "./routes/notesRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import publicRoutes from "./routes/publicRoutes.js";
 import { connectDB } from "./config/db.js";
 import rateLimiter from "./middleware/rateLimiter.js";
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -22,24 +19,21 @@ const __dirname = path.resolve();
 if (process.env.NODE_ENV !== "production") {
   app.use(
     cors({
-      origin: "http://localhost:5173", // For development communication with frontend
+      origin: "http://localhost:5173",
     })
   );
 }
-app.use(express.json()); // This middleware will parse JSON bodies: req.body
-app.use(rateLimiter); // Apply rate limiting to all requests
+app.use(express.json());
+app.use(rateLimiter);
 
 // API Routes
 app.use("/api/notes", notesRoutes);
-app.use("/api/users", userRoutes); // <- MODIFICATION: Mount user routes
-app.use("/api/public", publicRoutes); // <- MODIFICATION: Mount public routes
+app.use("/api/users", userRoutes);
+app.use("/api/public", publicRoutes);
 
 // Production Build Configuration
 if (process.env.NODE_ENV === "production") {
-  // Serve static files from the frontend's 'dist' directory
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
-
-  // For any route that is not an API route, send the frontend's index.html
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
   });
