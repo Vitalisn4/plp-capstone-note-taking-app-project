@@ -1,16 +1,12 @@
 import mongoose from "mongoose";
 
-// The Note schema has been updated to support all new features.
 const noteSchema = new mongoose.Schema(
   {
-    // --- Phase 1: User Ownership (CRITICAL) ---
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: "User", // Establishes a relationship with the User model
+      ref: "User",
     },
-
-    // --- Original Fields ---
     title: {
       type: String,
       required: true,
@@ -19,45 +15,47 @@ const noteSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
-    // --- Phase 2: Standout Free Tier Features ---
-    // Replaces a single 'category' with a more flexible array of tags.
     tags: {
       type: [String],
       default: [],
     },
-    // Allows notes to be "pinned" to the top of the list.
     isPinned: {
       type: Boolean,
       default: false,
     },
-    // Allows for a "soft delete" by moving notes to a trash folder.
     isTrashed: {
       type: Boolean,
       default: false,
-        },
-    
-        // --- NEW PREMIUM FIELDS ---
+    },
+    // This field will store the timestamp when a note is moved to trash.
+    trashedAt: {
+      type: Date,
+    },
     attachments: [
       {
-        public_id: { type: String, required: true }, // ID from Cloudinary
-        url: { type: String, required: true },       // URL from Cloudinary
-        filename: { type: String, required: true }, // Original filename
+        public_id: { type: String, required: true },
+        url: { type: String, required: true },
+        filename: { type: String, required: true },
       },
     ],
     shareableLink: {
-      token: { type: String, index: true, sparse: true }, // Indexed for fast lookups
+      token: { type: String, index: true, sparse: true },
       expires: { type: Date },
     },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
-// --- Phase 2: Full-Text Search Index ---
-// This enables efficient text searching on the title and content fields.
+// --- Indexes ---
 noteSchema.index({ title: "text", content: "text" });
+
+// --- THE UPDATE IS HERE: TTL Index for Auto-Deletion ---
+// This tells MongoDB to automatically delete a document 604800 seconds (7 days)
+// after the date specified in the 'trashedAt' field.
+// This will only apply to documents where 'trashedAt' exists.
+noteSchema.index({ trashedAt: 1 }, { expireAfterSeconds: 604800 });
 
 const Note = mongoose.model("Note", noteSchema);
 
