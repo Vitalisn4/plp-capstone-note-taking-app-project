@@ -1,50 +1,87 @@
-import { PenSquareIcon, Trash2Icon } from "lucide-react";
-import { Link } from "react-router";
-import { formatDate } from "../lib/utils";
-import api from "../lib/axios";
-import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
+import { Pin, Trash2, Edit } from "lucide-react"; // Using modern icons
+import { formatDistanceToNow } from "date-fns"; // For user-friendly dates
 
-const NoteCard = ({ note, setNotes }) => {
-  const handleDelete = async (e, id) => {
-    e.preventDefault(); // get rid of the navigation behaviour
+// A small, reusable component for displaying tags within the card
+const Tag = ({ children }) => (
+  <span className="px-2 py-1 text-xs font-semibold bg-gray-700 text-gray-300 rounded-full">
+    {children}
+  </span>
+);
 
-    if (!window.confirm("Are you sure you want to delete this note?")) return;
-
-    try {
-      await api.delete(`/notes/${id}`);
-      setNotes((prev) => prev.filter((note) => note._id !== id)); // get rid of the deleted one
-      toast.success("Note deleted successfully");
-    } catch (error) {
-      console.log("Error in handleDelete", error);
-      toast.error("Failed to delete note");
-    }
+const NoteCard = ({ note, onTrash }) => {
+  /**
+   * This handler is crucial. It prevents the parent <Link> from navigating
+   * when the trash button itself is clicked.
+   * @param {React.MouseEvent} e - The mouse event.
+   */
+  const handleTrashClick = (e) => {
+    e.preventDefault(); // Stop the default link behavior
+    e.stopPropagation(); // Stop the event from bubbling up to the parent Link
+    onTrash(note._id); // Call the function passed from HomePage
   };
 
   return (
+    // The entire card is a link to the note's detail/edit page.
     <Link
-      to={`/note/${note._id}`}
-      className="card bg-base-100 hover:shadow-lg transition-all duration-200 
-      border-t-4 border-solid border-[#00FF9D]"
+      to={`/app/note/${note._id}`} // Corrected route for Phase 2
+      className="relative block bg-gray-800 rounded-lg p-5 flex flex-col group border border-gray-700 hover:border-blue-500 transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-blue-500/10"
     >
-      <div className="card-body">
-        <h3 className="card-title text-base-content">{note.title}</h3>
-        <p className="text-base-content/70 line-clamp-3">{note.content}</p>
-        <div className="card-actions justify-between items-center mt-4">
-          <span className="text-sm text-base-content/60">
-            {formatDate(new Date(note.createdAt))}
-          </span>
-          <div className="flex items-center gap-1">
-            <PenSquareIcon className="size-4" />
-            <button
-              className="btn btn-ghost btn-xs text-error"
-              onClick={(e) => handleDelete(e, note._id)}
-            >
-              <Trash2Icon className="size-4" />
-            </button>
+      {/* Conditionally render the Pin icon if the note is pinned */}
+      {note.isPinned && (
+        <Pin
+          className="absolute top-4 right-4 text-blue-400 animate-fade-in"
+          size={18}
+        />
+      )}
+
+      {/* Main content of the note card */}
+      <div className="flex-grow">
+        <h3 className="font-bold text-lg mb-2 pr-8 truncate text-white">
+          {note.title}
+        </h3>
+        <p className="text-gray-400 text-sm mb-4 h-20 overflow-hidden break-words">
+          {note.content}
+        </p>
+
+        {/* Display tags if they exist */}
+        {note.tags && note.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {note.tags.slice(0, 3).map((tag) => (
+              <Tag key={tag}>{tag}</Tag>
+            ))}
           </div>
+        )}
+      </div>
+
+      {/* Footer section with date and action buttons */}
+      <div className="flex justify-between items-center mt-auto pt-2 border-t border-gray-700/50">
+        <p className="text-xs text-gray-500">
+          {/* Format the date to be more readable, e.g., "about 2 hours ago" */}
+          {formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true })}
+        </p>
+
+        {/* Action buttons appear on hover for a cleaner look */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          {/* The Edit icon is purely visual; clicking anywhere on the card edits */}
+          <div
+            className="p-2 rounded-full hover:bg-gray-700 text-white"
+            title="Edit Note"
+          >
+            <Edit size={16} />
+          </div>
+          {/* The Trash button has its own specific click handler */}
+          <button
+            onClick={handleTrashClick}
+            className="p-2 rounded-full hover:bg-red-500/20 text-red-400 hover:text-red-300"
+            title="Move to Trash"
+          >
+            <Trash2 size={16} />
+          </button>
         </div>
       </div>
     </Link>
   );
 };
+
 export default NoteCard;
