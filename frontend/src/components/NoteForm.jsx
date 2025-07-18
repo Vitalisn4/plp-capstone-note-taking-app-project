@@ -1,4 +1,5 @@
 import { Pin, PinOff } from "lucide-react";
+import { useNavigate } from "react-router"; // Import useNavigate
 import TagInput from "./ui/TagInput";
 
 const NoteForm = ({
@@ -8,6 +9,8 @@ const NoteForm = ({
   loading,
   isUpdate = false,
 }) => {
+  const navigate = useNavigate(); // Initialize the hook
+
   const handleChange = (e) => {
     setNoteData({ ...noteData, [e.target.name]: e.target.value });
   };
@@ -29,7 +32,7 @@ const NoteForm = ({
         required
         value={noteData.title}
         onChange={handleChange}
-        className="w-full text-2xl font-bold bg-transparent border-b-2 border-gray-700 focus:border-blue-500 focus:outline-none py-2"
+        className="w-full text-3xl font-bold bg-transparent border-b-2 border-gray-700 focus:border-blue-500 focus:outline-none py-2 text-white"
       />
       <textarea
         name="content"
@@ -37,7 +40,7 @@ const NoteForm = ({
         required
         value={noteData.content}
         onChange={handleChange}
-        className="w-full h-64 bg-gray-800 border border-gray-700 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+        className="w-full h-96 bg-gray-800 border border-gray-700 rounded-lg p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
       />
 
       <div>
@@ -57,19 +60,30 @@ const NoteForm = ({
           <span>{noteData.isPinned ? "Unpin Note" : "Pin Note"}</span>
         </button>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-6 py-3 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-        >
-          {loading
-            ? isUpdate
-              ? "Saving..."
-              : "Creating..."
-            : isUpdate
-            ? "Save Changes"
-            : "Create Note"}
-        </button>
+        {/* --- THE FIX IS HERE --- */}
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => navigate("/app")} // Navigate back to the main dashboard
+            className="px-6 py-3 font-bold text-gray-300 bg-transparent rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 py-3 font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {loading
+              ? isUpdate
+                ? "Saving..."
+                : "Creating..."
+              : isUpdate
+              ? "Save Changes"
+              : "Create Note"}
+          </button>
+        </div>
       </div>
     </form>
   );
