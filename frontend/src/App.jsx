@@ -1,15 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router";
-import { Toaster } from "react-hot-toast";
+import { Routes, Route, Navigate } from "react-router"; // CORRECTED: Import from 'react-router-dom'
 import useAuthStore from "./store/authStore";
 
-// --- Page & Component Imports ---
-// We import the new pages for our authentication flow.
+// Page & Component Imports
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import ProtectedRoute from "./components/ProtectedRoute";
-// We import a placeholder for the main application dashboard.
 import DashboardPage from "./pages/DashboardPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 /**
  * A helper component to manage public routes.
@@ -23,56 +20,49 @@ const PublicRoute = ({ children }) => {
 
 const App = () => {
   return (
-    // We are keeping your original div wrapper to maintain the app's background style.
+    // This main div wrapper remains to keep your app's background style.
     <div className="relative h-full min-h-screen w-full">
       <div className="absolute inset-0 -z-10 h-full w-full items-center [background:radial-gradient(125%_125%_at_50%_10%,#000_60%,#00FF9D40_100%)]" />
 
-      <BrowserRouter>
-        {/* Toaster provides beautiful, non-blocking notifications throughout the app */}
-        <Toaster position="top-center" reverseOrder={false} />
+      {/* 
+        REMOVED: <BrowserRouter> and <Toaster> have been moved to main.jsx 
+        to act as top-level providers for the entire application.
+        This fixes the nested router error and follows best practices.
+      */}
 
-        <Routes>
-          {/* --- Public Routes --- */}
-          {/* These routes are accessible to everyone. If a logged-in user tries to access them, they are redirected to '/app'. */}
-          <Route
-            path="/"
-            element={
-              <PublicRoute>
-                <LandingPage />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <LoginPage />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicRoute>
-                <RegisterPage />
-              </PublicRoute>
-            }
-          />
+      <Routes>
+        {/* --- Public Routes --- */}
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <LandingPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <RegisterPage />
+            </PublicRoute>
+          }
+        />
 
-          {/* --- Protected Routes --- */}
-          {/* The <ProtectedRoute> component will check for authentication. */}
-          {/* If the user is logged in, it will render the nested routes. */}
-          {/* If not, it will redirect them to the landing page. */}
-          <Route path="/app" element={<ProtectedRoute />}>
-            {/* The 'index' route is the default component shown for '/app' */}
-            <Route index element={<DashboardPage />} />
-
-            {/* We will add more nested routes for our app here in the future */}
-            {/* e.g., <Route path="create" element={<CreatePage />} /> */}
-            {/* e.g., <Route path="note/:id" element={<NoteDetailPage />} /> */}
-          </Route>
-        </Routes>
-      </BrowserRouter>
+        {/* --- Protected Routes --- */}
+        <Route path="/app" element={<ProtectedRoute />}>
+          <Route index element={<DashboardPage />} />
+          {/* Future app routes will be nested here */}
+        </Route>
+      </Routes>
     </div>
   );
 };
