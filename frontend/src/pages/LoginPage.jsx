@@ -1,6 +1,6 @@
 // src/pages/LoginPage.jsx
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import useAuthStore from "../store/authStore";
 import api from "../lib/axios";
 import toast from "react-hot-toast";
