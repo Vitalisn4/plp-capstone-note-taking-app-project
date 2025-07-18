@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"; // Import useCallback
+import { useState, useEffect, useCallback } from "react";
 import api from "../lib/axios";
 import toast from "react-hot-toast";
 import { Loader2, Trash2 } from "lucide-react";
@@ -8,60 +8,73 @@ const TrashPage = () => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // --- Fetching Logic ---
-  // We wrap fetchTrashedNotes in useCallback to stabilize the function reference.
   const fetchTrashedNotes = useCallback(async () => {
-    // We can remove the `if (!loading)` check here as it's handled by the initial state
     setLoading(true);
     try {
       const { data } = await api.get("/notes/trash");
       setNotes(data);
     } catch (error) {
+      // --- FIX: Log the actual error ---
       console.error("Error fetching trashed notes:", error);
       toast.error("Failed to fetch trashed notes.");
     } finally {
       setLoading(false);
     }
-  }, []); // The function itself has no dependencies, so the array is empty.
+  }, []);
 
-  // Now we can safely add fetchTrashedNotes to the dependency array.
   useEffect(() => {
     fetchTrashedNotes();
   }, [fetchTrashedNotes]);
 
-  // --- Handler for Restoring a Note ---
   const handleRestore = async (id) => {
     setNotes(notes.filter((n) => n._id !== id));
     try {
       await api.put(`/notes/${id}/restore`);
       toast.success("Note restored successfully!");
     } catch (error) {
+      // --- FIX: Log the actual error ---
       console.error("Error restoring note:", error);
       toast.error("Could not restore note.");
-      fetchTrashedNotes(); // Re-fetch on error to sync state
+      fetchTrashedNotes();
     }
   };
 
-  // --- Handler for Permanently Deleting a Note ---
   const handleDelete = async (id) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this note permanently? This action cannot be undone."
-      )
-    ) {
+    if (window.confirm("Are you sure? This action cannot be undone.")) {
       setNotes(notes.filter((n) => n._id !== id));
       try {
         await api.delete(`/notes/${id}`);
         toast.success("Note permanently deleted.");
       } catch (error) {
+        // Here we are already using 'error' for the toast, but adding a console.error is good practice.
         console.error("Error deleting note:", error);
         toast.error(error.response?.data?.message || "Could not delete note.");
-        fetchTrashedNotes(); // Re-fetch on error to sync state
+        fetchTrashedNotes();
       }
     }
   };
 
-  // --- Render Logic ---
+  const handleEmptyTrash = async () => {
+    if (notes.length === 0) return;
+    if (
+      window.confirm(
+        "Are you sure you want to empty the entire trash? This action cannot be undone."
+      )
+    ) {
+      const originalNotes = [...notes];
+      setNotes([]);
+      try {
+        await api.delete("/notes/trash/empty");
+        toast.success("Trash emptied successfully!");
+      } catch (error) {
+        // --- FIX: Log the actual error ---
+        console.error("Error emptying trash:", error);
+        toast.error("Failed to empty trash.");
+        setNotes(originalNotes);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-full">
@@ -72,9 +85,19 @@ const TrashPage = () => {
 
   return (
     <div className="animate-fade-in">
-      <div className="flex items-center gap-4 mb-6">
-        <Trash2 size={32} />
-        <h1 className="text-3xl font-bold">Trash</h1>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-4">
+          <Trash2 size={32} />
+          <h1 className="text-3xl font-bold">Trash</h1>
+        </div>
+        {notes.length > 0 && (
+          <button
+            onClick={handleEmptyTrash}
+            className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Empty Trash
+          </button>
+        )}
       </div>
 
       {notes.length === 0 ? (
@@ -82,16 +105,21 @@ const TrashPage = () => {
           <p className="text-gray-400 text-lg">Your trash bin is empty.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {notes.map((note) => (
-            <TrashedNoteCard
-              key={note._id}
-              note={note}
-              onRestore={handleRestore}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
+        <>
+          <p className="mb-6 text-gray-400">
+            Notes in the trash will be permanently deleted after 7 days.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {notes.map((note) => (
+              <TrashedNoteCard
+                key={note._id}
+                note={note}
+                onRestore={handleRestore}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
