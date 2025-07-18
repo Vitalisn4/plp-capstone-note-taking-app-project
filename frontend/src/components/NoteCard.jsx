@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Pin, Trash2, Edit } from "lucide-react"; // Using modern icons
 import { formatDistanceToNow } from "date-fns"; // For user-friendly dates
 

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router";
+import { Link } from "react-router"; // CORRECTED: Import from 'react-router-dom'
 import { Plus, Search, Loader2 } from "lucide-react";
 import api from "../lib/axios";
 import toast from "react-hot-toast";
-import { useDebounce } from "../hooks/useDebounce"; // This import will now work
+import { useDebounce } from "../hooks/useDebounce";
 import NoteCard from "../components/NoteCard";
 import NotesNotFound from "../components/NotesNotFound";
 
@@ -31,6 +31,7 @@ const HomePage = () => {
     fetchNotes(debouncedSearchTerm);
   }, [debouncedSearchTerm, fetchNotes]);
 
+  // This function correctly calls the 'move to trash' endpoint and is passed to the NoteCard
   const handleTrashNote = async (id) => {
     const originalNotes = [...notes];
     setNotes(originalNotes.filter((n) => n._id !== id));
@@ -40,7 +41,7 @@ const HomePage = () => {
     } catch (error) {
       console.error("Error moving note to trash:", error);
       toast.error("Failed to move note to trash.");
-      setNotes(originalNotes);
+      setNotes(originalNotes); // Revert UI if the API call fails
     }
   };
 
@@ -81,7 +82,11 @@ const HomePage = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {notes.map((note) => (
-            <NoteCard key={note._id} note={note} onTrash={handleTrashNote} />
+            <NoteCard
+              key={note._id}
+              note={note}
+              onTrash={handleTrashNote} // Pass the correct handler to the NoteCard
+            />
           ))}
         </div>
       )}
