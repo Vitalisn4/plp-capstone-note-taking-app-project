@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-"; // Note: BrowserRouter is removed from this import
+import { Routes, Route, Navigate } from "react-router"; // Note: BrowserRouter is removed from this import
 import { Toaster } from "react-hot-toast";
 import useAuthStore from "./store/authStore";
 
