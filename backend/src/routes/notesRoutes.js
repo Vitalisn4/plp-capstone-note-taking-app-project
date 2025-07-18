@@ -31,6 +31,7 @@ router.route("/").get(getAllNotesForUser).post(createNote);
 router.get("/search", searchNotes);
 router.get("/tags", getAllUserTags);
 router.get("/trash", getTrashedNotes);
+router.delete("/trash/empty", emptyTrash);
 
 // --- Routes for a Single Note by ID ---
 router.route("/:id").get(getNoteById).put(updateNote).delete(deleteNote); // Note: This is now for PERMANENT deletion
