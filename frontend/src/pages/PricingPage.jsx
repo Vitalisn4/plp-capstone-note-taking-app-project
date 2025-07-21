@@ -1,4 +1,5 @@
-import { Check, X, Star } from "lucide-react";
+import { Link } from "react-router";
+import { Check, X, Star, ArrowLeft } from "lucide-react";
 import useAuthStore from "../store/authStore";
 import toast from "react-hot-toast";
 
@@ -29,6 +30,17 @@ const PricingPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 animate-fade-in">
+      {/* --- NEW: BACK BUTTON --- */}
+      <div className="mb-8">
+        <Link
+          to="/app"
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+        >
+          <ArrowLeft size={20} />
+          <span>Back to All Notes</span>
+        </Link>
+      </div>
+
       <h1 className="text-4xl font-bold text-center text-white mb-4">
         Unlock Your Full Potential
       </h1>
