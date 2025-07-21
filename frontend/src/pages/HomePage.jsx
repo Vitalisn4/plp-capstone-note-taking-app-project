@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router";
+import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Search, Loader2 } from "lucide-react";
 import useAuthStore from "../store/authStore";
 import api from "../lib/axios";
@@ -12,7 +13,9 @@ import ShareModal from "../components/ui/ShareModal";
 const HomePage = () => {
   const { user } = useAuthStore();
   const isPremium = user?.subscription?.tier === "premium";
-  const navigate = useNavigate(); // Import and use navigate for routing
+  const navigate = useNavigate();
+
+  const MotionDiv = motion.div;
 
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +50,6 @@ const HomePage = () => {
       await api.put(`/notes/${id}/trash`);
       toast.success("Note moved to trash.");
     } catch (error) {
-      // --- FIX: USE THE ERROR VARIABLE ---
       console.error("Error moving note to trash:", error);
       toast.error("Failed to move note to trash.");
       setNotes(originalNotes);
@@ -56,7 +58,6 @@ const HomePage = () => {
 
   const handleShareNote = async (id) => {
     if (!isPremium) {
-      // For a better UX, navigate the user to the pricing page
       navigate("/app/pricing");
       toast("Upgrade to Premium to share notes.", { icon: "⭐" });
       return;
@@ -79,7 +80,7 @@ const HomePage = () => {
         shareableLink={shareableLink}
       />
 
-      <div className="animate-fade-in">
+      <div>
         <header className="flex flex-wrap justify-between items-center gap-4 mb-8">
           <h1 className="text-3xl font-bold text-white">All Notes</h1>
           <div className="flex items-center gap-4">
@@ -106,25 +107,44 @@ const HomePage = () => {
           </div>
         </header>
 
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="animate-spin text-blue-500" size={48} />
-          </div>
-        ) : notes.length === 0 ? (
-          <NotesNotFound />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {notes.map((note) => (
-              <NoteCard
-                key={note._id}
-                note={note}
-                onTrash={handleTrashNote}
-                onShare={handleShareNote}
-                isPremium={isPremium}
-              />
-            ))}
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <MotionDiv
+              key="loader"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex justify-center items-center h-64"
+            >
+              <Loader2 className="animate-spin text-blue-500" size={48} />
+            </MotionDiv>
+          ) : (
+            <MotionDiv
+              key="content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {notes.length === 0 ? (
+                <NotesNotFound />
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {notes.map((note) => (
+                    <NoteCard
+                      key={note._id}
+                      note={note}
+                      onTrash={handleTrashNote}
+                      onShare={handleShareNote}
+                      isPremium={isPremium}
+                    />
+                  ))}
+                </div>
+              )}
+            </MotionDiv>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );
