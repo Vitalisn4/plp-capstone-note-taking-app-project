@@ -1,16 +1,15 @@
 import { Pin, PinOff } from "lucide-react";
-import { useNavigate } from "react-router"; // Import useNavigate
 import TagInput from "./ui/TagInput";
 
+// Add 'onCancel' to the destructured props
 const NoteForm = ({
   noteData,
   setNoteData,
   handleSubmit,
   loading,
   isUpdate = false,
+  onCancel,
 }) => {
-  const navigate = useNavigate(); // Initialize the hook
-
   const handleChange = (e) => {
     setNoteData({ ...noteData, [e.target.name]: e.target.value });
   };
@@ -32,7 +31,7 @@ const NoteForm = ({
         required
         value={noteData.title}
         onChange={handleChange}
-        className="w-full text-3xl font-bold bg-transparent border-b-2 border-gray-700 focus:border-blue-500 focus:outline-none py-2 text-white"
+        className="w-full text-2xl font-bold bg-transparent border-b-2 border-gray-700 focus:border-blue-500 focus:outline-none py-2"
       />
       <textarea
         name="content"
@@ -40,7 +39,7 @@ const NoteForm = ({
         required
         value={noteData.content}
         onChange={handleChange}
-        className="w-full h-96 bg-gray-800 border border-gray-700 rounded-lg p-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+        className="w-full h-64 bg-gray-800 border border-gray-700 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
       />
 
       <div>
@@ -60,16 +59,17 @@ const NoteForm = ({
           <span>{noteData.isPinned ? "Unpin Note" : "Pin Note"}</span>
         </button>
 
-        {/* --- THE FIX IS HERE --- */}
+        {/* --- ADDED CANCEL BUTTON AND WRAPPER DIV --- */}
         <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => navigate("/app")} // Navigate back to the main dashboard
-            className="px-6 py-3 font-bold text-gray-300 bg-transparent rounded-lg hover:bg-gray-800 transition-colors"
-          >
-            Cancel
-          </button>
-
+          {isUpdate && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-6 py-3 font-bold text-gray-300 bg-transparent rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
+          )}
           <button
             type="submit"
             disabled={loading}
