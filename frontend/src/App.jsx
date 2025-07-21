@@ -13,12 +13,8 @@ import TrashPage from "./pages/TrashPage";
 import CreatePage from "./pages/CreatePage";
 import NoteDetailPage from "./pages/NoteDetailPage";
 import PublicNotePage from "./pages/PublicNotePage";
-import PricingPage from "./pages/PricingPage"; 
+import PricingPage from "./pages/PricingPage";
 
-/**
- * A helper component that prevents authenticated users from accessing
- * public-only pages like the landing and login pages.
- */
 const PublicRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
   return isAuthenticated ? <Navigate to="/app" replace /> : children;
@@ -28,58 +24,56 @@ const App = () => {
   return (
     // This wrapper div provides the global background styling.
     <div className="relative h-full min-h-screen w-full">
-      <div className="absolute inset-0 -z-10 h-full w-full items-center [background:radial-gradient(125%_125%_at_50%_10%,#000_60%,#00FF9D40_100%)]" />
+      {/* --- NEW, MORE ACCURATE BACKGROUND --- */}
+      {/* This creates the solid, very dark navy background */}
+      <div className="fixed inset-0 bg-[#111827] -z-20" />
+      {/* This creates the subtle green glow from the bottom */}
+      <div className="fixed bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-emerald-900/30 to-transparent -z-10" />
 
-      {/* Toaster for global notifications */}
-      <Toaster position="top-center" reverseOrder={false} />
+      {/* Assuming main.jsx has BrowserRouter. */}
+      <>
+        <Toaster position="top-center" reverseOrder={false} />
 
-      {/* 
-        The <Routes> component works here because <BrowserRouter> is its ancestor,
-        correctly provided in main.jsx.
-      */}
-      <Routes>
-        {/* --- Public Routes --- */}
-        <Route
-          path="/"
-          element={
-            <PublicRoute>
-              <LandingPage />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <LoginPage />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <PublicRoute>
-              <RegisterPage />
-            </PublicRoute>
-          }
-        />
-        <Route path="/share/:token" element={<PublicNotePage />} />
+        <Routes>
+          {/* --- Public Routes --- */}
+          <Route
+            path="/"
+            element={
+              <PublicRoute>
+                <LandingPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <RegisterPage />
+              </PublicRoute>
+            }
+          />
+          <Route path="/share/:token" element={<PublicNotePage />} />
 
-        {/* --- Protected Application Routes --- */}
-        {/* The ProtectedRoute checks if a user is logged in. */}
-        <Route path="/app" element={<ProtectedRoute />}>
-          {/* If logged in, the MainLayout (with sidebar) is rendered. */}
-          <Route element={<MainLayout />}>
-            {/* The index route is the default page for "/app" */}
-            <Route index element={<HomePage />} />
-            <Route path="trash" element={<TrashPage />} />
-            <Route path="create" element={<CreatePage />} />
-            <Route path="note/:id" element={<NoteDetailPage />} />
-            {/* --- ADDED THE NEW ROUTE FOR THE PRICING PAGE --- */}
-            <Route path="pricing" element={<PricingPage />} />
+          {/* --- Protected Application Routes --- */}
+          <Route path="/app" element={<ProtectedRoute />}>
+            <Route element={<MainLayout />}>
+              <Route index element={<HomePage />} />
+              <Route path="trash" element={<TrashPage />} />
+              <Route path="create" element={<CreatePage />} />
+              <Route path="note/:id" element={<NoteDetailPage />} />
+              <Route path="pricing" element={<PricingPage />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
+        </Routes>
+      </>
     </div>
   );
 };
