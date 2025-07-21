@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router";
+import { Routes, Route, Navigate } from "react-router"; // Changed import to react-router-dom
 import { Toaster } from "react-hot-toast";
 import useAuthStore from "./store/authStore";
 
@@ -12,6 +12,7 @@ import HomePage from "./pages/HomePage";
 import TrashPage from "./pages/TrashPage";
 import CreatePage from "./pages/CreatePage";
 import NoteDetailPage from "./pages/NoteDetailPage";
+import PublicNotePage from "./pages/PublicNotePage";
 
 const PublicRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
@@ -20,14 +21,16 @@ const PublicRoute = ({ children }) => {
 
 const App = () => {
   return (
+    // This top-level div is fine as it's for styling.
     <div className="relative h-full min-h-screen w-full">
       <div className="absolute inset-0 -z-10 h-full w-full items-center [background:radial-gradient(125%_125%_at_50%_10%,#000_60%,#00FF9D40_100%)]" />
 
       <Toaster position="top-center" reverseOrder={false} />
 
       {/* 
-        The <Routes> component now works correctly because its parent 
-        (in main.jsx) provides the necessary BrowserRouter context.
+        The <BrowserRouter> has been REMOVED from this file.
+        The routing context is now correctly provided by main.jsx,
+        which is the standard and correct pattern.
       */}
       <Routes>
         {/* --- Public Routes --- */}
@@ -56,9 +59,13 @@ const App = () => {
           }
         />
 
+        <Route path="/share/:token" element={<PublicNotePage />} />
+
         {/* --- Protected Application Routes --- */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/app" element={<MainLayout />}>
+        <Route path="/app" element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            {" "}
+            {/* MainLayout now correctly wraps nested routes */}
             <Route index element={<HomePage />} />
             <Route path="trash" element={<TrashPage />} />
             <Route path="create" element={<CreatePage />} />
