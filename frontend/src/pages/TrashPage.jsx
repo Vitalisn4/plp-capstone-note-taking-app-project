@@ -17,6 +17,8 @@ const TrashPage = () => {
       const { data } = await api.get("/notes/trash");
       setNotes(data);
     } catch (error) {
+      // --- FIX 1: USE THE ERROR VARIABLE ---
+      console.error("Error fetching trashed notes:", error);
       toast.error("Failed to fetch trashed notes.");
     } finally {
       setLoading(false);
@@ -33,6 +35,8 @@ const TrashPage = () => {
       await api.put(`/notes/${id}/restore`);
       toast.success("Note restored successfully!");
     } catch (error) {
+      // --- FIX 2: USE THE ERROR VARIABLE ---
+      console.error("Error restoring note:", error);
       toast.error("Could not restore note.");
       fetchTrashedNotes();
     }
@@ -59,6 +63,8 @@ const TrashPage = () => {
       await api.delete(`/notes/${id}`);
       toast.success("Note permanently deleted.");
     } catch (error) {
+      // This catch block was already using the error variable correctly.
+      console.error("Error deleting note permanently:", error);
       toast.error(error.response?.data?.message || "Could not delete note.");
       fetchTrashedNotes();
     }
