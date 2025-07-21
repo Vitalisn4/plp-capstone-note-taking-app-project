@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router";
 import { AnimatePresence } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import AnimatedPage from "../components/ui/AnimatedPage"; // Import our new component
