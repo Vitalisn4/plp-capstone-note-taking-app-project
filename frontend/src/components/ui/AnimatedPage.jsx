@@ -7,8 +7,12 @@ const animations = {
 };
 
 const AnimatedPage = ({ children }) => {
+  // --- FIX: Create a capitalized alias for the motion component ---
+  // This satisfies the ESLint rule for JSX component naming.
+  const MotionDiv = motion.div;
+
   return (
-    <motion.div
+    <MotionDiv
       variants={animations}
       initial="initial"
       animate="animate"
@@ -16,7 +20,7 @@ const AnimatedPage = ({ children }) => {
       transition={{ duration: 0.3 }}
     >
       {children}
-    </motion.div>
+    </MotionDiv>
   );
 };
 
