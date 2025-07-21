@@ -1,5 +1,5 @@
-import { Link } from "react-router";
-import { Pin, Trash2, Edit, Share2 } from "lucide-react"; // Import Share2 icon
+import { Link } from "react-router"; // Corrected import
+import { Pin, Trash2, Edit, Share2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 const Tag = ({ children }) => (
@@ -8,7 +8,6 @@ const Tag = ({ children }) => (
   </span>
 );
 
-// --- ADD onShare and isPremium to props ---
 const NoteCard = ({ note, onTrash, onShare, isPremium }) => {
   const handleTrashClick = (e) => {
     e.preventDefault();
@@ -16,7 +15,6 @@ const NoteCard = ({ note, onTrash, onShare, isPremium }) => {
     onTrash(note._id);
   };
 
-  // --- NEW: Handler for Share click ---
   const handleShareClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -26,7 +24,8 @@ const NoteCard = ({ note, onTrash, onShare, isPremium }) => {
   return (
     <Link
       to={`/app/note/${note._id}`}
-      className="relative block bg-gray-800 rounded-lg p-5 flex flex-col justify-between group border border-gray-700 hover:border-blue-500 transition-all duration-300 transform hover:-translate-y-1"
+      // --- FIX: REMOVED the redundant 'block' class ---
+      className="relative bg-gray-800 rounded-lg p-5 flex flex-col justify-between group border border-gray-700 hover:border-blue-500 transition-all duration-300 transform hover:-translate-y-1"
     >
       {note.isPinned && (
         <Pin className="absolute top-3 right-3 text-blue-400" size={18} />
@@ -51,7 +50,6 @@ const NoteCard = ({ note, onTrash, onShare, isPremium }) => {
           {formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true })}
         </p>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          {/* --- NEW: Share Button with Premium Gating --- */}
           <button
             onClick={handleShareClick}
             disabled={!isPremium}
