@@ -10,6 +10,7 @@ import userRoutes from "./routes/userRoutes.js";
 import publicRoutes from "./routes/publicRoutes.js";
 import { connectDB } from "./config/db.js";
 import rateLimiter from "./middleware/rateLimiter.js";
+import aiRoutes from "./routes/aiRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -30,6 +31,7 @@ app.use(rateLimiter);
 app.use("/api/notes", notesRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/public", publicRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Production Build Configuration
 if (process.env.NODE_ENV === "production") {
