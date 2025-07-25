@@ -1,11 +1,12 @@
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Link } from "react-router";
+import { Link } from "react-router"; // CORRECTED import
 import useAuthStore from "../store/authStore";
 import api from "../lib/axios";
 import toast from "react-hot-toast";
 import { Pin, PinOff, UploadCloud, Paperclip, FileText } from "lucide-react";
 import TagInput from "./ui/TagInput";
+import AIActions from "./AIActions"; // IMPORT the new AI component
 
 const NoteForm = ({
   noteData,
@@ -60,6 +61,21 @@ const NoteForm = ({
     setNoteData({ ...noteData, isPinned: !noteData.isPinned });
   };
 
+  // --- NEW: Handlers to receive AI-generated content ---
+  const handleSummaryGenerated = (summary) => {
+    const formattedSummary = `\n\n## AI Summary\n${summary}`;
+    setNoteData({
+      ...noteData,
+      content: (noteData.content || "") + formattedSummary,
+    });
+    toast.success("AI summary has been added to your note!");
+  };
+
+  const handleTitleSuggested = (title) => {
+    setNoteData({ ...noteData, title: title });
+    toast.success("AI title suggestion has been applied!");
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -72,7 +88,17 @@ const NoteForm = ({
           onChange={handleChange}
           className="w-full text-3xl font-bold bg-transparent focus:outline-none py-2 text-white"
         />
-        {/* --- NEW: VISIBLE TEXTBOX FOR CONTENT --- */}
+
+        {/* --- ADD THE AI ACTIONS COMPONENT (only for existing notes) --- */}
+        {isUpdate && (
+          <AIActions
+            noteContent={noteData.content}
+            onSummary={handleSummaryGenerated}
+            onTitle={handleTitleSuggested}
+            isPremium={isPremium}
+          />
+        )}
+
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-1 focus-within:ring-2 focus-within:ring-blue-500">
           <textarea
             name="content"
@@ -166,7 +192,6 @@ const NoteForm = ({
         </button>
 
         <div className="flex items-center gap-4">
-          {/* --- MODIFIED: Show Cancel button always, but check for onCancel prop --- */}
           {onCancel && (
             <button
               type="button"
